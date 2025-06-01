@@ -14,24 +14,21 @@ function AntiDopingClicker() {
   // Initialize upgrade states as empty arrays initially, will load from backend
   const [testAgents, setTestAgents] = useState([]);
   const [equipment, setEquipment] = useState([]);
-  const [topPlayers, setTopPlayers] = useState([
-    { name: "Player1", points: 1500 },
-    { name: "Player2", points: 1200 },
-    { name: "Player3", points: 900 },
-    { name: "Player4", points: 750 },
-    { name: "Player5", points: 500 },
-  ]);
+  const [topPlayers, setTopPlayers] = useState([]);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(true);
+  const [leaderboardError, setLeaderboardError] = useState('');
   
   const clickSound = useRef(new Audio('/click.mp3'));
   const purchaseRef = useRef({}); // Ref to track purchases to prevent double processing
   const { user, token } = useAuth(); // Get user AND token from auth context
 
-  // Effect to fetch game state on mount
+  // Effect to fetch game state on mount and token change
   useEffect(() => {
     const fetchGameState = async () => {
       console.log('Fetching game state effect triggered.');
       if (!token) {
         console.log('No token available, skipping game state fetch.');
+        setLoading(false); // Assume game state loading is done if no token
         return; // Don't fetch if no token
       }
       console.log('Token available, attempting to fetch game state...');
@@ -39,7 +36,8 @@ function AntiDopingClicker() {
       try {
         const res = await axios.get('/api/game', {
           headers: {
-            'x-auth-token': token
+            // Use Authorization header with Bearer token
+            'Authorization': `Bearer ${token}`
           }
         });
         const gameState = res.data;
@@ -51,6 +49,7 @@ function AntiDopingClicker() {
 
         // Recalculate totalPps from loaded testAgents
         const loadedTotalPps = (gameState.testAgents || []).reduce((sum, agent) => {
+            // Need to find the base agent info (like pps) from initial list
             const baseAgent = initialTestAgents.find(a => a.id === agent.id);
             return sum + (baseAgent ? baseAgent.pps * agent.count : 0);
         }, 0);
@@ -58,12 +57,15 @@ function AntiDopingClicker() {
 
         // Recalculate clickMultiplier from loaded equipment
          const loadedClickMultiplier = (gameState.equipment || []).reduce((sum, item) => {
+            // Need to find the base item info (like multiplier) from initial list
             const baseItem = initialEquipment.find(i => i.id === item.id);
+            // Equipment multiplier is added, not multiplied
             return sum + (baseItem ? baseItem.multiplier * item.count : 0);
         }, 1);
         setClickMultiplier(loadedClickMultiplier);
 
         // Update local state of testAgents and equipment with counts
+        // Initialize state with full list and update counts from saved state
         setTestAgents(initialTestAgents.map(agent => {
             const savedAgent = (gameState.testAgents || []).find(sa => sa.id === agent.id);
             return savedAgent ? { ...agent, count: savedAgent.count } : { ...agent, count: 0 };
@@ -75,11 +77,52 @@ function AntiDopingClicker() {
 
       } catch (err) {
         console.error('Error fetching game state:', err);
+        // Optionally set an error state for game state
+      } // Loading state for game state is handled by the outer effect logic
+    };
+
+    // Only fetch game state if user is logged in (token is available)
+    if (user && token) {
+      fetchGameState();
+    }
+  }, [user, token]); // Depend on user and token
+
+  // Effect to fetch leaderboard data on mount and token change
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      console.log('Fetching leaderboard effect triggered.');
+      if (!token) {
+        console.log('No token available, skipping leaderboard fetch.');
+        setLeaderboardLoading(false); // Assume leaderboard loading is done if no token
+        setTopPlayers([]); // Clear leaderboard if logged out
+        return; // Don't fetch if no token
+      }
+      console.log('Token available, attempting to fetch leaderboard...');
+
+      try {
+        const res = await axios.get('http://localhost:5000/api/leaderboard', {
+          headers: {
+            'Authorization': `Bearer ${token}` // Include JWT token
+          }
+        });
+        console.log('Leaderboard data fetched successfully:', res.data);
+        setTopPlayers(res.data);
+      } catch (err) {
+        console.error('Error fetching leaderboard:', err);
+        setLeaderboardError('Failed to load leaderboard.');
+      } finally {
+        setLeaderboardLoading(false);
       }
     };
 
-    fetchGameState();
-  }, [token]); // Rerun when token changes
+    // Only fetch leaderboard if user is logged in (token is available)
+     if (user && token) {
+      fetchLeaderboard();
+    } else {
+      setLeaderboardLoading(false);
+      setTopPlayers([]); // Clear leaderboard if logged out
+    }
+  }, [user, token]); // Depend on user and token
 
   // Effect to save game state periodically
   useEffect(() => {
@@ -94,11 +137,13 @@ function AntiDopingClicker() {
       };
 
        // Only save if there are points or upgrades (to avoid saving default state immediately)
-      if (points > 0 || testAgents.some(a => a.count > 0) || equipment.some(e => e.count > 0)) {
+       // Added a check for user to prevent saving before user is loaded
+      if (user && (points > 0 || testAgents.some(a => a.count > 0) || equipment.some(e => e.count > 0))) {
          try {
           await axios.post('/api/game/save', gameData, {
             headers: {
-              'x-auth-token': token
+              // Use Authorization header with Bearer token
+              'Authorization': `Bearer ${token}`
             }
           });
           console.log('Game state saved.');
@@ -114,9 +159,12 @@ function AntiDopingClicker() {
     // Save game state when component unmounts
     return () => {
       clearInterval(saveInterval);
-      saveGameState(); // Save one last time on unmount
+      // Check if user and token exist before saving on unmount
+      if (user && token && (points > 0 || testAgents.some(a => a.count > 0) || equipment.some(e => e.count > 0))) {
+        saveGameState(); // Save one last time on unmount
+      }
     };
-  }, [token, points, testAgents, equipment]); // Rerun effect when relevant state changes
+  }, [token, points, testAgents, equipment, user]); // Depend on user as well
 
 
   // Keep initial upgrade lists separate to use for calculating loaded PPS/Multiplier
@@ -271,9 +319,9 @@ function AntiDopingClicker() {
                   {/* Display fetched top players here */}
                   {topPlayers.map((player, index) => (
                     <div key={index} className="flex justify-between items-center">
-                      <span className="text-gray-600">{player.name}</span>
-                      {/* Assuming backend returns fairPoints in leaderboard data */}
-                      <span className="text-blue-600 font-semibold">{player.points.toLocaleString()}</span>
+                      <span className="text-gray-600">{player.username}</span>
+                      {/* Display player's Fair Points */}
+                      <span className="text-blue-600 font-semibold">{player.fairPoints.toLocaleString()}</span>
                     </div>
                   ))}
                 </div>

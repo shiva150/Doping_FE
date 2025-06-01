@@ -7,14 +7,14 @@ function Games() {
   const games = [
     {
       title: "Anti-Doping Clicker",
-      description: "An idle clicker game where you earn points by making anti-doping decisions and managing your clean sport campaign.",
+      description: "An idle clicker game where you earn Fair Points by clicking and purchasing upgrades.",
       image: "🎮",
       path: "/games/clicker",
       features: [
-        "Earn points through strategic decisions",
-        "Upgrade your anti-doping facilities",
-        "Train athletes in clean sport practices",
-        "Compete on the global leaderboard"
+        "Earn Fair Points by clicking",
+        "Increase point generation with Test Agent upgrades",
+        "Boost click power with Equipment upgrades",
+        "Compete on the leaderboard based on Fair Points"
       ]
     },
     {
