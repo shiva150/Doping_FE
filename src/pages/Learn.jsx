@@ -1,26 +1,36 @@
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 function Learn() {
+  const navigate = useNavigate();
+  
   const modules = [
     {
       title: "Anti-Doping Basics",
       description: "Learn the fundamental principles of anti-doping in sport",
       level: "Beginner",
-      duration: "30 mins"
+      duration: "30 mins",
+      path: "/learn/basics"
     },
     {
       title: "Prohibited Substances",
       description: "Understanding the WADA prohibited list and substances",
       level: "Intermediate",
-      duration: "45 mins"
+      duration: "45 mins",
+      path: "/learn/substances"
     },
     {
       title: "Testing Procedures",
       description: "Step-by-step guide to doping control procedures",
       level: "Advanced",
-      duration: "60 mins"
+      duration: "60 mins",
+      path: "/learn/testing"
     }
   ];
+
+  const handleModuleClick = (path) => {
+    navigate(path);
+  };
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -52,7 +62,12 @@ function Learn() {
                 <span className="text-green-600">Duration: {module.duration}</span>
               </div>
             </div>
-            <button className="btn-primary">Start Module</button>
+            <button 
+              className="btn-primary"
+              onClick={() => handleModuleClick(module.path)}
+            >
+              Start Module
+            </button>
           </motion.div>
         ))}
       </div>
