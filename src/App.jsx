@@ -10,6 +10,8 @@ import Register from './pages/Register';
 import AntiDopingBasics from './pages/modules/AntiDopingBasics';
 import ProhibitedSubstances from './pages/modules/ProhibitedSubstances';
 import TestingProcedures from './pages/modules/TestingProcedures';
+import Games from './pages/Games';
+import AntiDopingClicker from './pages/games/AntiDopingClicker';
 
 function App() {
   return (
@@ -28,6 +30,8 @@ function App() {
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/games" element={<Games />} />
+            <Route path="/games/clicker" element={<AntiDopingClicker />} />
           </Routes>
         </main>
       </div>

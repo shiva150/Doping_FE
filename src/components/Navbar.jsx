@@ -5,6 +5,7 @@ import {
   AcademicCapIcon,
   QuestionMarkCircleIcon,
   ChartBarIcon,
+  PuzzlePieceIcon
 } from '@heroicons/react/24/outline';
 import { AuthContext } from '../context/AuthContext';
 
@@ -30,6 +31,7 @@ function Navbar() {
             <AppNavLink to="/learn" icon={<AcademicCapIcon className="w-5 h-5" />} text="Learn" />
             <AppNavLink to="/quizzes" icon={<QuestionMarkCircleIcon className="w-5 h-5" />} text="Quizzes" />
             <AppNavLink to="/leaderboard" icon={<ChartBarIcon className="w-5 h-5" />} text="Leaderboard" />
+            <AppNavLink to="/games" icon={<PuzzlePieceIcon className="w-5 h-5" />} text="Games" />
 
             {user ? (
               <>

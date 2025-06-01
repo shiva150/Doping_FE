@@ -39,10 +39,11 @@ function Login() {
         throw new Error(data.message || 'Login failed');
       }
 
-      // Call AuthContext login to store user info
+      // Call AuthContext login to store user info and token
       login({
         username: data.user.username,
         id: data.user._id,
+        token: data.token,
       });
 
       navigate('/');
