@@ -7,6 +7,9 @@ import Quiz from './pages/Quiz';
 import Leaderboard from './pages/Leaderboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import AntiDopingBasics from './pages/modules/AntiDopingBasics';
+import ProhibitedSubstances from './pages/modules/ProhibitedSubstances';
+import TestingProcedures from './pages/modules/TestingProcedures';
 
 function App() {
   return (
@@ -17,6 +20,9 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/learn" element={<Learn />} />
+            <Route path="/learn/basics" element={<AntiDopingBasics />} />
+            <Route path="/learn/substances" element={<ProhibitedSubstances />} />
+            <Route path="/learn/testing" element={<TestingProcedures />} />
             <Route path="/quizzes" element={<QuizList />} />
             <Route path="/quiz/:id" element={<Quiz />} />
             <Route path="/leaderboard" element={<Leaderboard />} />
